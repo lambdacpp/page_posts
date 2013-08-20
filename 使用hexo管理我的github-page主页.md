@@ -82,5 +82,18 @@ hexo deploy --generate
 5. [8.20补充] 保证`source/_post`下只有需要的.md文件，如果有编辑器自动备份的文件，hexo在生成网页时的时候会一并生成产生重复的网页
 
 
+### 使用Git将md文档管理起来
+
+前面提到只需要将`source/_post`文件管理起来就可以了。在github下再创建一个新的库，比如叫`page_posts`。在`_post`目录下如下操作 ：
+
+```
+git init
+git add .
+git commit -m "创建post库"
+git remote add orgin git@github.com:username/page_posts.git
+git push -u orgin master
+```
+
+_最后一句push 中的-u是--set-upstream的简写，目的在于指定master分支的upstream是orgin。这样定义以后，今后需要提交直接push就可以了。_
 
 
