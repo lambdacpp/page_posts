@@ -1,6 +1,8 @@
 title: 创建自己的Debian Vagrant Box
 date: 2013-12-03 09:44:48
-tags: 虚拟化
+tags: 
+    - 虚拟化
+    - Vagrant   
 ---
 
 ___『懒惰是程序员的美德』--Larry Wall ___
