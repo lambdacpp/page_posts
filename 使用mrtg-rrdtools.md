@@ -84,13 +84,15 @@ __这里是第二个坑__，后面会用 `indexmaker` 生成展示页面，如�
 
 `/etc/cron.d/mrtg`中已经配置每5分钟采集一次数据。如果没有问题，可以在`/var/www/mrtg/log`下面看见rrd格式的日志文件，但是，`/var/www/mrtg/img/`下面什么也没有。MRTG不会去生成图像，那是RRDTools的事情。 
 
-### 使用RRDTools
+### 使用RRDTool
 
-`RRDTools`是MRTG的升级版，其实RRDTools只是一个将日志数据转换为图像的工具。使用MRTG-RRDTools与MRTG的不同地方表现在：
+`RRDTool`是MRTG的升级版，其实RRDTools只是一个将日志数据转换为图像的工具。使用MRTG-RRDTools与MRTG的不同地方表现在：
 1. MRTG一般采集了数据就将图像生成放在那儿，而MRTG-RRDTools只是将数据采集回来放在RRDTools格式的文件中。
 2. MRTG展示图像是通过Web服务器的静态页面方式，而MRTG-RRDTools需要通过CGI程序在用户需要的时候生成图像。
 
-所以，在MRTG的[官方网站](http://oss.oetiker.ch/mrtg/doc/mrtg-rrd.en.html)上提供了3种不同的CGI实现。我们使用第三种 [mrtg-rrd](http://www.fi.muni.cz/~kas/mrtg-rrd/)。使用非常简单，只要保证安装了`mrtg-rrd`，就可以运行了，关键是通过`indexmaker`生成正确的链接。
+所以，在MRTG的[官方网站](http://oss.oetiker.ch/mrtg/doc/mrtg-rrd.en.html)上提供了3种不同的CGI实现。我们使用第三种 [mrtg-rrd](http://www.fi.muni.cz/~kas/mrtg-rrd/)。使用非常简单，只要保证安装了`mrtg-rrd`，就可以运行了，关键是通过`indexmaker`生成正确的链接，另外应该注意配置`/etc/mrtg-rrd.conf`，这个文件中列出了使用`mrtg-rrd`展示的mrtg监控的配置文件。举个例子，如果有两台设备，mrtg监控的配置分别是`/etc/mrtg.cfg`和`/etc/mrtg2.cfg`，那就应该将2个文件都配置到`/etc/mrtg-rrd.conf`中。
+
+
 
 #### indexmaker 的坑真多
 
@@ -100,6 +102,30 @@ __这里是第二个坑__，后面会用 `indexmaker` 生成展示页面，如�
 
 ```
 但有问题，刚才提到的那个[参考](http://people.binf.ku.dk/~hanne/technotes/mrtg/)上提到了要按[这个操作](http://people.binf.ku.dk/~hanne/technotes/mrtg/indexmaker-hack.txt)hack一下这个perl程序。Hack的内容就是要修改一下模板。修改后 indexmaker就可以工作了，生成了index文件，通过Apache打开，那些图像就开始实时的生成了。
+
+#### 下面是Hacker的内容
+
+```
+# Approx line 471 in /usr/bin/indexmaker
+
+                    if ( !($picfirstloop^$$opt{picfirst}) ) {
+                        # figure show name for rrd viewer
+                            if ($$cfg{logformat} eq 'rrdtool') {
+               my $sep = $$opt{rrdviewer} =~ /\?/ ? '&amp;' : '?';
+               $index .= "<A HREF=\"$$opt{rrdviewer}/$item.html\">".
+               "<IMG BORDER=$$opt{imgborder} ALT=\"$item Traffic Graph\" ".
+               "SRC=\"$$opt{rrdviewer}/$item-day.png\"></A>"
+# <orig>
+#               $index .= "<A
+#               HREF=\"$$opt{rrdviewer}".$sep."log=$item&amp;cfg=$$cfgfile{$item}\">".
+#                                         "<IMG BORDER=$$opt{imgborder}
+#                                         ALT=\"$item Traffic Graph\" ".
+# "SRC=\"$$opt{rrdviewer}".$sep."log=$item&amp;cfg=$$cfgfile{$item}&amp;png=$$opt{show}.".
+#                                         "s&amp;small=1\"></A>"
+# </orig>
+                            } else {
+
+```
 
 但还有问题：
 
